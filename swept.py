@@ -1,4 +1,6 @@
 import argparse
+
+from git import Repo
 from pathlib import Path
 from typing import Union
 
@@ -27,25 +29,33 @@ def edit_file(file: Union[str, Path], instruction: str) -> bool:
   return is_modified
 
 
+def display_diff(repo: Repo) -> None:
+  print(repo.git.diff(None))
+
+
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description='Edit a section of code, PR with changes.')
-  parser.add_argument('input_file', help='location of a file')
-  parser.add_argument('instruction', help='instruction on how to edit the file', type=str)
+  parser.add_argument('-f', '--file', help='location of a file', required=True)
+  parser.add_argument('-i', '--instruction', help='instruction on how to edit the file', type=str, required=True)
+  parser.add_argument('-r', '--repo', help='location to git repo', type=str, default='./')
   parser.add_argument('-d', '--diff', help='show diff', action='store_true')
   parser.add_argument('-pr', '--pull-request', help='add change, commit, push and raise a PR', action='store_true')
   args = parser.parse_args()
 
-  file = Path(args.input_file)
+  file = Path(args.file)
+  repo_loc = Path(args.repo)
   instruction = args.instruction.strip()
+  repo = Repo(repo_loc)
 
   assert file.exists() and file.is_file(), "File does not exist!"
   assert file.suffix in ALLOWED_FILE_EXT, "Filetype not supported"
   assert len(instruction) > 0, "Instruction not valid"
+  assert not repo.bare, "Repo is bare!"
 
   is_modified = edit_file(file, instruction)
 
   if args.diff and is_modified:
-    pass
+    display_diff(repo)
 
   if args.pull_request and is_modified:
     # 1. add
