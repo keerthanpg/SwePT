@@ -1,14 +1,20 @@
 import argparse
-
+import openai
 from git import Repo
 from pathlib import Path
 from typing import Union
 
 ALLOWED_FILE_EXT = [".py"]
+openai.api_key = ""
 
 
 def get_edits_for_instruction(code: str, instruction: str) -> str:
-  # magic fn
+  response = openai.Edit.create(
+    model="code-davinci-edit-001",
+    input=code,
+    instruction=instruction,
+  )
+  code = response["choices"][0]["text"]
   return code
 
 
