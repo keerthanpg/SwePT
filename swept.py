@@ -35,20 +35,20 @@ def display_diff(repo: Repo) -> None:
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description='Edit a section of code, PR with changes.')
-  parser.add_argument('-f', '--file', help='location of a file', required=True)
+  parser.add_argument('-f', '--file', help='location of a file', required=True, type=Path)
   parser.add_argument('-i', '--instruction', help='instruction on how to edit the file', type=str, required=True)
-  parser.add_argument('-r', '--repo', help='location to git repo', type=str, default='./')
+  parser.add_argument('-r', '--repo', help='location to git repo', type=Path, default='./')
   parser.add_argument('-d', '--diff', help='show diff', action='store_true')
   parser.add_argument('-pr', '--pull-request', help='add change, commit, push and raise a PR', action='store_true')
   args = parser.parse_args()
 
-  file = Path(args.file)
-  repo_loc = Path(args.repo)
+  file = args.file
+  repo_loc = args.repo
   instruction = args.instruction.strip()
   repo = Repo(repo_loc)
 
-  assert file.exists() and file.is_file(), "File does not exist!"
-  assert file.suffix in ALLOWED_FILE_EXT, "Filetype not supported"
+  assert file.is_file(), f"{file} does not exist or is not a file"
+  assert file.suffix in ALLOWED_FILE_EXT, f"Filetype {file.suffix} not supported"
   assert len(instruction) > 0, "Instruction not valid"
   assert not repo.bare, "Repo is bare!"
 
