@@ -3,7 +3,6 @@ import json
 import openai
 import os
 import random
-import re
 import requests
 
 from git import Repo
@@ -20,7 +19,7 @@ def get_edits_for_instruction(code: str, instruction: str) -> str:
     model="code-davinci-edit-001",
     input=code,
     instruction=instruction,
-    temperature=0.0,
+    temperature=0.1,
     top_p=1.0,
   )
   code = response["choices"][0]["text"]
@@ -49,8 +48,8 @@ def display_diff(repo: Repo, file: Path) -> None:
   print(repo.git.diff([str(file)]))
 
 
-def generate_summary(prompt):
-  prompt = 'Generate a pull request commit message, pr heading and pr body for instruction:' + prompt
+def generate_summary(prompt: str) -> str:
+  prompt = 'Generate a pull request branch name, commit message, pr heading and pr body for instruction:' + prompt
   response = openai.Completion.create(
     model="text-davinci-003",
     prompt=prompt,
@@ -65,18 +64,17 @@ def generate_summary(prompt):
 
 
 def get_meta_info(instruction: str) -> Dict[str, str]:
-  summary = generate_summary('Rewrite the given code and fix any bugs in the program.')
-  summary_list = re.split(":", summary)
+  summary = generate_summary(instruction).strip().replace("\n\n", "\n")
+  summary_list = [x.split(":")[-1].strip() for x in summary.split("\n")]
 
-  commit_msg = summary_list[1].split("\n")[0]
-  pr_heading = summary_list[2].split("\n")[0]
-  pr_body = summary_list[3].split("\n")[0]
+  if len(summary_list) != 4:
+    summary_list = ['new-edit-branch', 'add edit based on instruction', 'Instruction based edit', "Instruction: " + instruction]
 
   res = {
-    "branch": instruction.replace(" ", "_") + "_" + str(random.randint(0, 10000000)),
-    "commit_message": commit_msg,
-    "pr_heading": pr_heading,
-    "pr_body": pr_body
+    "branch": f"{summary_list[0]}-{random.randint(0, 1000)}",
+    "commit_message": summary_list[1],
+    "pr_title": summary_list[2],
+    "pr_body": summary_list[3],
   }
   return res
 
@@ -108,6 +106,7 @@ if __name__ == "__main__":
   if args.pull_request and is_modified:
     print("\n\n-------------------PR--------------------")
     meta = get_meta_info(instruction)
+    print("Meta:", meta)
     current_branch = repo.active_branch.name
     print(f"0. Creating new-branch: {meta['branch']} (current-branch: {current_branch})")
     repo.git.checkout("-b", meta['branch'])
