@@ -22,6 +22,6 @@ optional arguments:
 
 ## Example
 ```
-OPENAI_KEY="<key>" GH_TOKEN="<token>" python swept.py -f examples/import_indent_bug.py -i "Rewrite the given code and fix any bugs in the program." -d
-
+OPENAI_KEY="<key>" GH_TOKEN="<token>" python swept.py -f examples/import_indent_bug.py -i "Rewrite the given code and fix any bugs in the program." -d --pr
 ```
+Here is a real PR opened by this above command: https://github.com/keerthanpg/SwePT/pull/8
