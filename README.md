@@ -21,7 +21,15 @@ optional arguments:
 ```
 
 ## Example
+
 ```
 OPENAI_KEY="<key>" GH_TOKEN="<token>" python swept.py -f examples/import_indent_bug.py -i "Rewrite the given code and fix any bugs in the program." -d --pr
 ```
 Here is a real PR opened by this above command: https://github.com/keerthanpg/SwePT/pull/8
+
+
+```
+OPENAI_KEY="<key>" GH_TOKEN="<token>" python swept.py
+-f /Users/keerthanapg/robotics_transformer/tokenizers/image_tokenizer.py -i "Rewrite the given code by making the __call__ function always use token learner and remove use_token_learner and self._use_token_learner variable" -r "/Users/keerthanapg/robotics_transformer" -d -pr
+```
+Here is a more complex PR opened on an open source repo: https://github.com/keerthanpg/robotics_transformer/pull/5/commits/20dda2730774a414cfd6a59e59f8870c83ce6307
