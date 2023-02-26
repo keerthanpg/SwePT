@@ -22,6 +22,6 @@ optional arguments:
 
 ## Example
 ```
-python swept.py -f examples/import_indent_bug.py -i "Rewrite the given code and fix any bugs in the program." -d
+OPENAI_KEY="<key>" GH_TOKEN="<token>" python swept.py -f examples/import_indent_bug.py -i "Rewrite the given code and fix any bugs in the program." -d
 
 ```
