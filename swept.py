@@ -2,6 +2,7 @@ import argparse
 import openai
 import os
 import random
+import re
 import requests
 
 from git import Repo
@@ -46,13 +47,34 @@ def display_diff(repo: Repo, file: Path) -> None:
   print(repo.git.diff([str(file)]))
 
 
+def generate_summary(prompt):
+  prompt = 'Generate a pull request commit message, pr heading and pr body for instruction:' + prompt
+  response = openai.Completion.create(
+    model="text-davinci-003",
+    prompt=prompt,
+    temperature=0.7,
+    max_tokens=1024,
+    top_p=1.0,
+    frequency_penalty=0.0,
+    presence_penalty=0.0,
+    stop=["\"\"\""]
+  )
+  return response["choices"][0]["text"]
+
+
 def get_meta_info(instruction: str) -> Dict[str, str]:
+  summary = generate_summary('Rewrite the given code and fix any bugs in the program.')
+  summary_list = re.split(":", summary)
+
+  commit_msg = summary_list[1].split("\n")[0]
+  pr_heading = summary_list[2].split("\n")[0]
+  pr_body = summary_list[3].split("\n")[0]
 
   res = {
-    "branch": instruction + str(random.randint(0, 10000000)),
-    "commit_message": instruction,
-    "pr_heading": "Edit Code based on instruction",
-    "pr_body": f"Edit the file based on the following instruction:\n{instruction}"
+    "branch": instruction.replace(" ", "_") + "_" + str(random.randint(0, 10000000)),
+    "commit_message": commit_msg,
+    "pr_heading": pr_heading,
+    "pr_body": pr_body
   }
   return res
 
