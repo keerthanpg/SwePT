@@ -1,10 +1,17 @@
-import Random
-a = random.randint(1,12)
-  b = random.randint(1,12)
-for i in range(10):
-    question = "What is "+a+" x "+b+"? "
-    answer = input(question)
-    if answer =a*b
-        print (Well done!)
-    else:
-        print("No.")
+import random
+
+
+def main():
+    for i in range(10):
+        a = random.randint(1, 12)
+        b = random.randint(1, 12)
+        question = "What is " + str(a) + " x " + str(b) + "? "
+        answer = input(question)
+        if int(answer) == a * b:
+            print("Well done!")
+        else:
+            print("No.")
+
+
+if __name__ == "__main__":
+    main()
