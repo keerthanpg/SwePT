@@ -1,14 +1,17 @@
 import argparse
 import openai
+import os
+
 from git import Repo
 from pathlib import Path
-from typing import Union
+from typing import Union, Dict
 
 ALLOWED_FILE_EXT = [".py"]
-openai.api_key = ""
+openai.api_key = openai.api_key = os.getenv('OPENAI_KEY', "")
 
 
 def get_edits_for_instruction(code: str, instruction: str) -> str:
+  return code + "\n# end"
   response = openai.Edit.create(
     model="code-davinci-edit-001",
     input=code,
@@ -35,8 +38,18 @@ def edit_file(file: Union[str, Path], instruction: str) -> bool:
   return is_modified
 
 
-def display_diff(repo: Repo) -> None:
-  print(repo.git.diff(None))
+def display_diff(repo: Repo, file: Path) -> None:
+  print(repo.git.diff([str(file)]))
+
+
+def get_meta_info(instruction: str) -> Dict[str, str]:
+  res = {
+    "branch": "edit-code-example-1",
+    "commit_message": "add edit",
+    "pr_heading": "Edit Code based on instruction",
+    "pr_body": f"Edit the file based on the following instruction:\n{instruction}"
+  }
+  return res
 
 
 if __name__ == "__main__":
@@ -61,11 +74,25 @@ if __name__ == "__main__":
   is_modified = edit_file(file, instruction)
 
   if args.diff and is_modified:
-    display_diff(repo)
+    display_diff(repo, file)
 
   if args.pull_request and is_modified:
-    # 1. add
-    # 2. commit
-    # 3. push
-    # 4. pr
-    pass
+    meta = get_meta_info(instruction)
+    current_branch = repo.active_branch.name
+    print(f"0. Creating new branch: {meta['branch']} (current branch: {current_branch})")
+    repo.git.checkout("-b", meta['branch'])
+
+    print(f"1. Adding file: {file}")
+    repo.git.add(str(file))
+
+    print(f"2. Committing changes with message: {meta['commit_message']}")
+    commit_output = repo.git.commit(m=meta['commit_message'])
+
+    print("3. Push changes to remote (GitHub)")
+    push_output = repo.git.push('--set-upstream', repo.remote().name, meta['branch'])
+
+    print("4. Create a PR on GitHub")
+
+    print("5. Checking out current branch, deleting new branch")
+    repo.git.checkout(current_branch)
+    repo.git.branch("-D", meta['branch'])
