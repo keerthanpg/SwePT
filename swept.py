@@ -1,13 +1,14 @@
 import argparse
 import openai
 import os
+import random
 
 from git import Repo
 from pathlib import Path
 from typing import Union, Dict
 
 ALLOWED_FILE_EXT = [".py"]
-openai.api_key = openai.api_key = os.getenv('OPENAI_KEY', "")
+openai.api_key = os.getenv('OPENAI_KEY', "")
 
 
 def get_edits_for_instruction(code: str, instruction: str) -> str:
@@ -16,6 +17,8 @@ def get_edits_for_instruction(code: str, instruction: str) -> str:
     model="code-davinci-edit-001",
     input=code,
     instruction=instruction,
+    temperature=0.2,
+    top_p=1.0,
   )
   code = response["choices"][0]["text"]
   return code
@@ -43,9 +46,10 @@ def display_diff(repo: Repo, file: Path) -> None:
 
 
 def get_meta_info(instruction: str) -> Dict[str, str]:
+
   res = {
-    "branch": "edit-code-example-1",
-    "commit_message": "add edit",
+    "branch": instruction + str(random.randint(0, 10000000)),
+    "commit_message": instruction,
     "pr_heading": "Edit Code based on instruction",
     "pr_body": f"Edit the file based on the following instruction:\n{instruction}"
   }
