@@ -1,4 +1,5 @@
 import argparse
+import json
 import openai
 import os
 import random
@@ -19,7 +20,7 @@ def get_edits_for_instruction(code: str, instruction: str) -> str:
     model="code-davinci-edit-001",
     input=code,
     instruction=instruction,
-    temperature=0.2,
+    temperature=0.0,
     top_p=1.0,
   )
   code = response["choices"][0]["text"]
@@ -44,6 +45,7 @@ def edit_file(file: Union[str, Path], instruction: str) -> bool:
 
 
 def display_diff(repo: Repo, file: Path) -> None:
+  print("\n\n-------------------Diff--------------------")
   print(repo.git.diff([str(file)]))
 
 
@@ -104,6 +106,7 @@ if __name__ == "__main__":
     display_diff(repo, file)
 
   if args.pull_request and is_modified:
+    print("\n\n-------------------PR--------------------")
     meta = get_meta_info(instruction)
     current_branch = repo.active_branch.name
     print(f"0. Creating new-branch: {meta['branch']} (current-branch: {current_branch})")
@@ -125,22 +128,23 @@ if __name__ == "__main__":
       remote_url = repo.remotes.origin.url.replace(":", "/").replace(".git", "")
       repo_owner = remote_url.split("/")[-2]
       repo_name = remote_url.split("/")[-1]
-      response = requests.post(
-        url=f"https://api.github.com/repos/{repo_owner}/{repo_name}/pulls",
-        data={
-          "title": meta['pr_title'],
-          "body": meta['pr_body'],
-          "head": meta['branch'],
-          "base": current_branch
-        },
-        headers={
-          "Accept": "application/vnd.github+json",
-          "Authorization": f"Bearer {gh_token}",
-          "X-GitHub-Api-Version": "2022-11-28"
-        }
-      )
+      url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/pulls"
+      data = {
+        "title": meta['pr_title'],
+        "body": meta['pr_body'],
+        "head": meta['branch'],
+        "base": current_branch
+      }
+      headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {gh_token}",
+        "X-GitHub-Api-Version": "2022-11-28"
+      }
+      response = requests.post(url=url, data=json.dumps(data), headers=headers)
 
-      print(response.json)
+      if response.status_code == 201:
+        resp_json = response.json()
+        print(f"PR Created: {resp_json['html_url']}")
 
     print("5. Checking out current-branch, deleting local new-branch")
     repo.git.checkout(current_branch)
