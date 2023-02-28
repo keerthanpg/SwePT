@@ -9,7 +9,7 @@ from git import Repo
 from pathlib import Path
 from typing import Union, Dict
 
-ALLOWED_FILE_EXT = [".py"]
+ALLOWED_FILE_EXT = [".py", ".txt", ".md"]
 openai.api_key = os.getenv('OPENAI_KEY', "")
 gh_token = os.getenv('GH_TOKEN', "")
 
