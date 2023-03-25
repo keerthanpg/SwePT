@@ -1,5 +1,10 @@
-# SwePT
+# Japeeti
 AI sends pull requests for features you request in natural language
+
+- Create frontend website for marketing 
+- Semantic search for what files to update and recursive update
+- Slackbot that takes requests from users and responds with PR links
+- Github api to retrieve PR comments and what file, line num it correspond to 
 
 
 ## Usage
